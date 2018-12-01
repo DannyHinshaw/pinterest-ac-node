@@ -1,0 +1,18 @@
+{
+  "name": "pinterest-ac-node",
+  "version": "1.0.0",
+  "description": "Node daemon processes and tasks for ACDB.",
+  "main": "index.ts",
+  "author": "Danny Hinshaw",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "ts-node index.ts"
+  },
+  "dependencies": {
+    "@types/node": "^10.12.11",
+    "nano": "^7.1.1",
+    "ts-node": "^7.0.1",
+    "typescript": "^3.2.1"
+  }
+}
