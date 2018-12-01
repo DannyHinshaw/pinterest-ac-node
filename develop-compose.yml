@@ -6,8 +6,8 @@ services:
     container_name: couch_acdb
     restart: unless-stopped
     volumes:
-    - /data:/opt/couchdb/data
-    - /etc/local.d:/opt/couchdb/etc/local.d
+    - ./data:/opt/couchdb/data
+    - ./etc/local.d:/opt/couchdb/etc/local.d
     ports:
     - "5984:5984"
 
