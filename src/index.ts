@@ -76,8 +76,8 @@ const cronPurgeDB = (): Promise<any> => {
 };
 
 
-// Every day at 10:30am
-const testCron: CronJob = new CronJob("0 16 10 * * *", () => {
+// Every day at 5:30am
+const testCron: CronJob = new CronJob("0 30 5 * * *", () => {
 	console.log(`cron::ts::${new Date()}`);
 	cronPurgeDB().then(() => {
 		console.log("FINISHED");
