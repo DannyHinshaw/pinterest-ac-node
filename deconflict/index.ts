@@ -47,7 +47,7 @@ const convertToDeletions = (list): IDeleteObj[] => {
  * @param {string} fieldName
  * @returns {Promise<any>}
  */
-export const latestWins = (db: DocumentScope<any>, docId: string, fieldName: string): Promise<any> => {
+export const pickLatestRevs = (db: DocumentScope<any>, docId: string, fieldName: string): Promise<any> => {
 	// fetch the document with open_revs=all
 	// @ts-ignore
 	return db.get(docId, { open_revs: "all" }).then((data) => {
@@ -66,7 +66,7 @@ export const latestWins = (db: DocumentScope<any>, docId: string, fieldName: str
 		const docListSorted = [...docList].sort((a, b) => {
 			return a[fieldName] - b[fieldName]
 		});
-		console.log("docListSorted::", docListSorted);
+
 		// turn the remaining leaf nodes into deletions
 		const docListDeletes: IDeleteObj[] = convertToDeletions(docListSorted.slice(0, -1));
 

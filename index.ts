@@ -1,3 +1,4 @@
+import { CronJob } from "cron";
 import Nano, {
 	DocumentGetResponse,
 	DocumentListParams,
@@ -6,7 +7,8 @@ import Nano, {
 	DocumentScope,
 	ServerScope
 } from "nano"
-import { latestWins } from "./deconflict";
+import { pickLatestRevs } from "./deconflict";
+
 
 const AUTH: string = Buffer.from("admin:hkHM0Hut78HEe9TyLg6e").toString("base64");
 const DB_URLS = {
@@ -18,41 +20,49 @@ const DB_URLS = {
 /*               DB Refs
  ========================================= */
 
-const localCouch: ServerScope = Nano(DB_URLS.local);
-const remoteCouch: ServerScope = Nano({
+// const localCouch: ServerScope = Nano(DB_URLS.local);
+const localCouch: ServerScope = Nano({
 	url: DB_URLS.remote,
 	requestDefaults: {
-		headers: {
-			"Authorization": `Basic ${AUTH}`
-		}
+		headers: { "Authorization": `Basic ${AUTH}` }
 	}
 });
-const testDB: DocumentScope<any> = remoteCouch.db.use("determineifapinisaclosematchtothehighlightedregion");
+const testDB: DocumentScope<any> = localCouch.db.use("determineifapinisaclosematchtothehighlightedregion");
 
+const params: DocumentListParams = {
+	conflicts: true,
+	include_docs: true
+};
 
-// const testing = setInterval(() => {
-// 	console.log("ts::", +(new Date()));
-// }, 10000);
-
-remoteCouch.db.list().then((body) => {
-	return body.forEach((db) => {
-		console.log(db);
-	});
-}).then(() => {
-	const params: DocumentListParams = {
-		conflicts: true,
-		include_docs: true
-	};
-	testDB.list(params).then((body: DocumentListResponse<any>) => {
-		body.rows.forEach((doc: DocumentResponseRow<any>) => {
-			// output each document's body
+const resolveConflicts = (db: DocumentScope<any>) => {
+	return db.list(params).then((body: DocumentListResponse<any>) => {
+		return body.rows.forEach((doc: DocumentResponseRow<any>) => {
 			if (doc.doc._conflicts && doc.doc._conflicts.length) {
-				return latestWins(testDB, doc.doc._id, "updated")
+				return pickLatestRevs(db, doc.doc._id, "updated")
 					.then((res: DocumentGetResponse) => {
-						console.log("latestWins::res::", res, "\n");
+						return console.log("pickLatestRevs::res::", res, "\n");
 					});
 			}
 			return {};
 		});
 	});
-}).catch(console.error);
+};
+// const testing = setInterval(() => {
+// 	console.log("ts::", +(new Date()));
+// }, 10000);
+
+const testCron: CronJob = new CronJob("* * * * * 10", () => {
+	console.log("You will see this message every 10 seconds");
+}, null, true, "America/Los_Angeles");
+
+testCron.start();
+
+// localCouch.db.list().then((body: string[]) => {
+// 	return body.reduce((p, dbName) => {
+// 		return p.then(() => {
+// 			return resolveConflicts(localCouch.db.use(dbName))
+// 		});
+// 	}, Promise.resolve()).then((res) => {
+// 		console.log("FINISHED::ALL::res::", res);
+// 	});
+// }).catch(console.error);
