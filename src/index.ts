@@ -7,10 +7,10 @@ import Nano, {
 	DocumentScope,
 	ServerScope
 } from "nano"
-import { pickLatestRevs } from "./deconflict/index";
+import { pickLatestRevs } from "./deconflict";
 
 
-const AUTH: string = Buffer.from("admin:hkHM0Hut78HEe9TyLg6e").toString("base64");
+// const AUTH: string = Buffer.from("admin:hkHM0Hut78HEe9TyLg6e").toString("base64");
 const DB_URLS = {
 	local: "http://couch_acdb:5984",
 	remote: "https://acdbapi.com/"
@@ -20,15 +20,13 @@ const DB_URLS = {
 /*               DB Refs
  ========================================= */
 
-// const localCouch: ServerScope = Nano(DB_URLS.local);
-const localCouch: ServerScope = Nano({
-	url: DB_URLS.remote,
-	requestDefaults: {
-		headers: { "Authorization": `Basic ${AUTH}` }
-	}
-});
-const testDB: DocumentScope<any> = localCouch.db.use("determineifapinisaclosematchtothehighlightedregion");
-
+const localCouch: ServerScope = Nano(DB_URLS.local);
+// const localCouch: ServerScope = Nano({
+// 	url: DB_URLS.remote,
+// 	requestDefaults: {
+// 		headers: { "Authorization": `Basic ${AUTH}` }
+// 	}
+// });
 const params: DocumentListParams = {
 	conflicts: true,
 	include_docs: true
@@ -51,18 +49,18 @@ const resolveConflicts = (db: DocumentScope<any>) => {
 // 	console.log("ts::", +(new Date()));
 // }, 10000);
 
-const testCron: CronJob = new CronJob("* * * * * 10", () => {
-	console.log("You will see this message every 10 seconds");
-}, null, true, "America/Los_Angeles");
+const testCron: CronJob = new CronJob("* * * * * *", () => {
+	console.log(`ts::${+new Date()}`);
+}, null, true, "America/New_York");
 
 testCron.start();
 
-// localCouch.db.list().then((body: string[]) => {
-// 	return body.reduce((p, dbName) => {
-// 		return p.then(() => {
-// 			return resolveConflicts(localCouch.db.use(dbName))
-// 		});
-// 	}, Promise.resolve()).then((res) => {
-// 		console.log("FINISHED::ALL::res::", res);
-// 	});
-// }).catch(console.error);
+localCouch.db.list().then((body: string[]) => {
+	return body.reduce((p, dbName) => {
+		return p.then(() => {
+			return resolveConflicts(localCouch.db.use(dbName))
+		});
+	}, Promise.resolve()).then((res) => {
+		console.log("FINISHED::ALL::res::", res);
+	});
+}).catch(console.error);
