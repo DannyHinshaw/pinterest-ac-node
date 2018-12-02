@@ -15,6 +15,10 @@ const DB_URLS = {
 	local: "http://couch_acdb:5984",
 	remote: "https://acdbapi.com/"
 };
+const DB_BLACKLIST: string[] = [
+	"_users",
+	"_replicator"
+];
 
 
 /*               DB Refs
@@ -37,7 +41,7 @@ const params: DocumentListParams = {
  * @param {nano.DocumentScope<any>} db
  * @returns {Promise<void>}
  */
-const resolveConflicts = (db: DocumentScope<any>) => {
+const resolveConflicts = (db: DocumentScope<any>): Promise<any> => {
 	return db.list(params).then((body: DocumentListResponse<any>) => {
 		return body.rows.forEach((doc: DocumentResponseRow<any>) => {
 			if (doc.doc._conflicts && doc.doc._conflicts.length) {
@@ -55,18 +59,29 @@ const resolveConflicts = (db: DocumentScope<any>) => {
  * Conflict resolution wrapper.
  * @returns {Promise<void>}
  */
-const cronPurgeDB = () => {
+const cronPurgeDB = (): Promise<any> => {
 	return localCouch.db.list().then((body: string[]) => {
-		return body.reduce((p, dbName) => {
-			return p.then(() => {
-				return resolveConflicts(localCouch.db.use(dbName))
+		return body.reduce((p: Promise<any>, dbName: string, i: number) => {
+			return p.then((): any => {
+				if (!DB_BLACKLIST.includes(dbName)) {
+					console.log("RESOLVE_CONFLICT::DB_NAME::", dbName);
+					return resolveConflicts(localCouch.db.use(dbName)).then(() => {
+						return localCouch.db.compact(dbName);
+					});
+				}
+				return console.log("SKIPPING::DB_NAME::", dbName);
 			});
 		}, Promise.resolve());
 	}).catch(console.error);
 };
 
-const testCron: CronJob = new CronJob("15 * * * * *", () => {
-	console.log(`ts::${+new Date()}`);
+
+// Every day at 10:30am
+const testCron: CronJob = new CronJob("0 16 10 * * *", () => {
+	console.log(`cron::ts::${new Date()}`);
+	cronPurgeDB().then(() => {
+		console.log("FINISHED");
+	}).catch(console.error);
 }, null, true, "America/New_York");
 
 testCron.start();

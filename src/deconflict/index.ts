@@ -70,11 +70,9 @@ export const pickLatestRevs = (db: DocumentScope<any>, docId: string, fieldName:
 		// turn the remaining leaf nodes into deletions
 		const docListDeletes: IDeleteObj[] = convertToDeletions(docListSorted.slice(0, -1));
 
-		return docListDeletes;
+		// return docListDeletes;
 		// now we can delete the unwanted revisions
-		// return db.bulk({ docs: docListDeletes });
+		return db.bulk({ docs: docListDeletes });
 
-	}).catch((err) => {
-		console.error("Document could not be fetched");
 	});
 };
