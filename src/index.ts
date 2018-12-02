@@ -32,6 +32,11 @@ const params: DocumentListParams = {
 	include_docs: true
 };
 
+/**
+ * Core function to iterate dbs and resolve conflicts for each.
+ * @param {nano.DocumentScope<any>} db
+ * @returns {Promise<void>}
+ */
 const resolveConflicts = (db: DocumentScope<any>) => {
 	return db.list(params).then((body: DocumentListResponse<any>) => {
 		return body.rows.forEach((doc: DocumentResponseRow<any>) => {
@@ -45,22 +50,24 @@ const resolveConflicts = (db: DocumentScope<any>) => {
 		});
 	});
 };
-// const testing = setInterval(() => {
-// 	console.log("ts::", +(new Date()));
-// }, 10000);
 
-const testCron: CronJob = new CronJob("* * * * * *", () => {
+/**
+ * Conflict resolution wrapper.
+ * @returns {Promise<void>}
+ */
+const cronPurgeDB = () => {
+	return localCouch.db.list().then((body: string[]) => {
+		return body.reduce((p, dbName) => {
+			return p.then(() => {
+				return resolveConflicts(localCouch.db.use(dbName))
+			});
+		}, Promise.resolve());
+	}).catch(console.error);
+};
+
+const testCron: CronJob = new CronJob("15 * * * * *", () => {
 	console.log(`ts::${+new Date()}`);
 }, null, true, "America/New_York");
 
 testCron.start();
 
-localCouch.db.list().then((body: string[]) => {
-	return body.reduce((p, dbName) => {
-		return p.then(() => {
-			return resolveConflicts(localCouch.db.use(dbName))
-		});
-	}, Promise.resolve()).then((res) => {
-		console.log("FINISHED::ALL::res::", res);
-	});
-}).catch(console.error);
