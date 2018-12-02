@@ -6,14 +6,18 @@ services:
     container_name: couch_acdb
     restart: unless-stopped
     volumes:
-    - ./data:/opt/couchdb/data
-    - ./etc/local.d:/opt/couchdb/etc/local.d
+    - ./db/data:/opt/couchdb/data
+    - ./db/etc/local.d:/opt/couchdb/etc/local.d
     ports:
     - "5984:5984"
 
   node-daemon:
     build: .
     restart: unless-stopped
+    depends_on:
+    - couchdb
+    volumes:
+    - .:/usr/src/app
 
 
 # /usr/bin/docker run --restart unless-stopped -p 5984:5984 --volume ~/data:/opt/couchdb/data --volume ~/etc/local.d:/opt/couchdb/etc/local.d --name=couch_acdb couchdb
