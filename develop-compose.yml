@@ -19,5 +19,4 @@ services:
     volumes:
     - .:/usr/src/app
 
-
 # /usr/bin/docker run --restart unless-stopped -p 5984:5984 --volume ~/data:/opt/couchdb/data --volume ~/etc/local.d:/opt/couchdb/etc/local.d --name=couch_acdb couchdb
