@@ -2,12 +2,16 @@
   "name": "pinterest-ac-node",
   "version": "1.0.0",
   "description": "Node daemon processes and tasks for ACDB.",
-  "main": "index.ts",
+  "main": "src/index.ts",
   "author": "Danny Hinshaw",
   "license": "MIT",
   "private": true,
+  "repository": {
+    "type" : "git",
+    "url" : "https://github.com/DannyHinshaw/pinterest-ac-node"
+  },
   "scripts": {
-    "start": "ts-node index.ts"
+    "start": "ts-node src/index.ts"
   },
   "dependencies": {
     "@types/node": "^10.12.11",

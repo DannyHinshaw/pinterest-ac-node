@@ -7,7 +7,7 @@ import Nano, {
 	DocumentScope,
 	ServerScope
 } from "nano"
-import { pickLatestRevs } from "./deconflict";
+import { pickLatestRevs } from "./deconflict/index";
 
 
 const AUTH: string = Buffer.from("admin:hkHM0Hut78HEe9TyLg6e").toString("base64");
