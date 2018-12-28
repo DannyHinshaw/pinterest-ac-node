@@ -1,11 +1,5 @@
 import { DocumentScope } from "nano";
-
-
-interface IDeleteObj {
-	_id: string
-	_rev: string
-	_deleted: boolean
-}
+import { IDeleteDocument } from "../index";
 
 
 // This function takes the list of revisions and removes any deleted or not 'ok' ones.
@@ -27,7 +21,7 @@ const filterList = (list, excludeRev?) => {
 };
 
 // convert the incoming array of document to an array of deletions - {_id:"x",_rev:"y",_deleted:true}
-const convertToDeletions = (list): IDeleteObj[] => {
+const convertToDeletions = (list): IDeleteDocument[] => {
 	const retval = [];
 	for (const i in list) {
 		if (!list.hasOwnProperty(i)) {
@@ -68,7 +62,7 @@ export const pickLatestRevs = (db: DocumentScope<any>, docId: string, fieldName:
 		});
 
 		// turn the remaining leaf nodes into deletions
-		const docListDeletes: IDeleteObj[] = convertToDeletions(docListSorted.slice(0, -1));
+		const docListDeletes: IDeleteDocument[] = convertToDeletions(docListSorted.slice(0, -1));
 
 		// return docListDeletes;
 		// now we can delete the unwanted revisions
