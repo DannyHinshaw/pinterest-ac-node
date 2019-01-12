@@ -32,6 +32,7 @@ const DB_BLACKLIST: string[] = [
  ========================================= */
 
 const localCouch: ServerScope = Nano(DB_URLS.local);
+// const AUTH: string = Buffer.from("admin:hkHM0Hut78HEe9TyLg6e").toString("base64");
 // const localCouch: ServerScope = Nano({
 // 	url: DB_URLS.remote,
 // 	requestDefaults: {
@@ -51,9 +52,9 @@ const MIN_SIZE: number = 2000;
  */
 const ageTestDays = (days: number) => {
 	const daysSeconds: number = 60 * 60 * 24 * days;
-	const twoWeeksAgoTS: number = (+new Date()) - daysSeconds;
+	const initialTS: number = (+new Date() / 1000) - daysSeconds;
 
-	return (ts: number) => ts < twoWeeksAgoTS;
+	return (ts: number) => ts < initialTS;
 };
 
 /**
@@ -107,6 +108,14 @@ const pruneDocuments = (db: DocumentScope<any>) => {
 			const responseHasGold: boolean = !!responses.gold || responseKeys.some(k => k.toLowerCase() === "gold");
 			if (responseHasGold) {
 				return base;
+			}
+
+			const isEmpty: boolean = !responseKeys.length || responseKeys.every((k: string) => {
+				const response = responses[k];
+				return response && response.value === "";
+			});
+			if (isEmpty) {
+				return [...base, { _id: row.key, _rev: row.value.rev, _deleted: true }]
 			}
 
 			const revisionNumber: number = +row.value.rev[0];
